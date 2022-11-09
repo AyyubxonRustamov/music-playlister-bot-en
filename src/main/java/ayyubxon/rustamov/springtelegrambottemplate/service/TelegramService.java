@@ -36,7 +36,7 @@ public interface TelegramService {
 
     SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName);
 
-    BotApiMethod<Message> audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities, int start, int end,
+    BotApiMethod audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities, int start, int end,
                             String name, boolean next);
 
     DeleteMessage deleteMessage(Message message);
