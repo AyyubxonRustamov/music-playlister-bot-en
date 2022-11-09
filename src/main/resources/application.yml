@@ -1,17 +1,17 @@
 server:
-  port: ${port}
+  port: 8081
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/${database name}
+    url: jdbc:postgresql://localhost:5432/postgres
     driver-class-name: org.postgresql.Driver
-    password: ${password}
-    username: ${username}
+    password: Ayyub0906
+    username: postgres
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
     show-sql: false
   main:
     allow-circular-references: true
 bot:
-  token: ${bot token}
-  username: ${bot username}
+  token: 5407594116:AAHRCYcGuFK3lClH0cnzxGO-tGywP6uDYXQ
+  username: musicplaylister_bot
