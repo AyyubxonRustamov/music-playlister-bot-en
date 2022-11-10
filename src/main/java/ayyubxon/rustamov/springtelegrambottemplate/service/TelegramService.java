@@ -42,4 +42,8 @@ public interface TelegramService {
     DeleteMessage deleteMessage(Message message);
 
     AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked);
+
+    SendMessage deletePlaylist(Message message, List<Playlist> playlists);
+
+    SendMessage playlistDeleted(Message message, boolean success);
 }

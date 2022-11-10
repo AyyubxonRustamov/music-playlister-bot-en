@@ -6,6 +6,7 @@ import ayyubxon.rustamov.springtelegrambottemplate.checker.UsernameChecker;
 import ayyubxon.rustamov.springtelegrambottemplate.entity.AudioEntity;
 import ayyubxon.rustamov.springtelegrambottemplate.entity.Playlist;
 import lombok.RequiredArgsConstructor;
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -186,6 +187,24 @@ public class TelegramServiceImpl implements TelegramService {
                 .text((isLiked? TextBuilder.ANSWER_LIKED : TextBuilder.ANSWER_DISLIKED))
                 .showAlert(false)
                 .callbackQueryId(callbackQuery.getId())
+                .build();
+    }
+
+    @Override
+    public SendMessage deletePlaylist(Message message, List<Playlist> playlists) {
+        return SendMessage.builder()
+                .text(TextBuilder.DELETE_PLAYLIST)
+                .chatId(message.getChatId())
+                .replyMarkup(KeyboardBuilder.playlistHomeKeyboard(playlists))
+                .build();
+    }
+
+    @Override
+    public SendMessage playlistDeleted(Message message, boolean success) {
+        return SendMessage.builder()
+                .chatId(message.getChatId())
+                .text(success? TextBuilder.PLAYLIST_DELETED : TextBuilder.PLAYLIST_NOT_FOUND)
+                .replyMarkup(KeyboardBuilder.homeKeyboard())
                 .build();
     }
 }

@@ -4,5 +4,6 @@ public enum State {
     START,
     MAIN_MENU,
     NAMING_PLAYLIST,
-    AUDIO_EXIST
+    AUDIO_EXIST,
+    DELETE_PLAYLIST
 }

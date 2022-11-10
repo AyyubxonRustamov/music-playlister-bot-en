@@ -13,7 +13,7 @@ import java.io.Serializable;
 @Service
 public class SenderImpl implements Sender {
 
-    private TelegramBot fesBot;
+    private final TelegramBot fesBot;
 
     @Override
     public <T extends Serializable> T send(BotApiMethod<T> botApiMethod) {

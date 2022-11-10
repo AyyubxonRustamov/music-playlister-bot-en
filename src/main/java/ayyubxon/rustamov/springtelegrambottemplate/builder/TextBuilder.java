@@ -23,6 +23,10 @@ public class TextBuilder {
     public static String ANSWER_LAST_PAGE = "Siz allaqachon oxirgi sahifadasiz!";
     public static String ANSWER_LIKED = "❤️ Sizning playlistingizga qo'shildi (/liked)";
     public static String ANSWER_DISLIKED = "\uD83D\uDC94 Sizning playlistingizdan o'chirildi (/liked)";
+    public static String DELETE_PLAYLIST = "\uD83D\uDDD1 O'chirish uchun playlistni tanlang. Playlistdagi mavjud " +
+            "qo'shiqlar playlist bilan birga o'chiriladi va qayta tiklab bo'lmaydi!";
+    public static String PLAYLIST_DELETED = "Playlist o'chirildi!";
+    public static String PLAYLIST_NOT_FOUND = "\uD83C\uDFA7 Playlist topilmadi!";
 
     public static String startMessage(User from) {
         return "Assalomu alaykum " + usernameChecker.check(from) + ". Men musiqalaringizni turli " +

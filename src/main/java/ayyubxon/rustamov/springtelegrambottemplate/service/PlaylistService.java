@@ -48,10 +48,11 @@ public class PlaylistService {
         return new ServiceResponse<>("Success!", true, all);
     }
 
-    public  ServiceResponse<?> delete(Playlist playlist){
-        Optional<Playlist> optionalPlaylist = playlistRepository.findById(playlist.getId());
-        if (optionalPlaylist.isEmpty()) return new ServiceResponse<>("Playlist Not Found!", false);
-        playlistRepository.delete(playlist);
+    public  ServiceResponse<?> deleteByUserAndName(User user, String name){
+        Optional<Playlist> optionalPlaylist = playlistRepository.findByUserAndName(user, name);
+        if (optionalPlaylist.isEmpty())
+            return new ServiceResponse<>("Playlist Not Found!", false);
+        playlistRepository.delete(optionalPlaylist.get());
         return new ServiceResponse<>("Success!", true);
     }
 

@@ -15,9 +15,6 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.objects.Audio;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 @Component
@@ -67,7 +64,14 @@ public class MessageHandler implements Handler<Message> {
                 user.setState(State.START);
                 userService.save(user);
 
-            }else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu")){
+            } else if (message.equals("/liked")) {
+
+            } else if (message.equals("/del_playlist")) {
+                user.setState(State.DELETE_PLAYLIST);
+                userService.save(user);
+                sender.send(telegramService.deletePlaylist(message, playlists));
+
+            } else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu")) {
                 user.setTempAudioId(null);
                 userService.save(user);
                 sender.send(telegramService.home(message));
@@ -93,6 +97,9 @@ public class MessageHandler implements Handler<Message> {
                 user.setState(State.MAIN_MENU);
                 userService.save(user);
 
+            } else if (user.getState() == State.DELETE_PLAYLIST & !nameChecker(playlists, message.getText())) {
+                ServiceResponse<?> serviceResponse = playlistService.deleteByUserAndName(user, message.getText());
+                sender.send(telegramService.playlistDeleted(message, serviceResponse.isSuccess()));
             } else if (!nameChecker(playlists, message.getText()) & user.getState() == State.MAIN_MENU) {
                 System.out.println("Playlist: " + message.getText());
                 List<AudioEntity> audioEntities = audioEntityService.getAllByUserAndPlaylist(user, playlistService.getByUserAndName(
@@ -119,6 +126,7 @@ public class MessageHandler implements Handler<Message> {
                 }
             }
         }
+
     }
 
     public boolean nameChecker(List<Playlist> playlists, String name) {

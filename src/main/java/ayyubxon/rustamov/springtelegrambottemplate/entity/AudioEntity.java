@@ -34,8 +34,6 @@ public class AudioEntity {
 
     private String performer;
 
-    private PhotoSize thumb;
-
     private String fileName;
 
     private boolean liked = false;
