@@ -41,9 +41,15 @@ public class AudioEntityService {
         return new ServiceResponse<>("Success!", true, audioEntities);
     }
 
-    public ServiceResponse<List<AudioEntity>> getAllByUserAndPlaylist(User user, Playlist playlist){
+    public ServiceResponse<List<AudioEntity>> getAllByUserAndPlaylist(User user, Playlist playlist) {
         List<AudioEntity> audioEntities = audioEntityRepository.findAllByUserAndPlaylist(
                 user.getChatId(), playlist.getName());
+        if (audioEntities.isEmpty()) return new ServiceResponse<>("AudioEntities Not Found!", false);
+        return new ServiceResponse<>("Success!", true, audioEntities);
+    }
+
+    public ServiceResponse<List<AudioEntity>> getAllLikedByUser(User user) {
+        List<AudioEntity> audioEntities = audioEntityRepository.findAllLikedByUser(user.getChatId());
         if (audioEntities.isEmpty()) return new ServiceResponse<>("AudioEntities Not Found!", false);
         return new ServiceResponse<>("Success!", true, audioEntities);
     }

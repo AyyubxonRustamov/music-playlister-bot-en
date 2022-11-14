@@ -52,11 +52,11 @@ public class KeyboardBuilder {
 
     public static InlineKeyboardMarkup allAudiosKeyboard(List<AudioEntity> audioEntities, int start, int end,
                                                          String playlistName) {
-        end = TextBuilder.endChecker(audioEntities, end);
-        int btnQuantity = end - start + 1;
+        int tempEnd = TextBuilder.endChecker(audioEntities, end);
+        int btnQuantity = tempEnd - start + 1;
         System.out.println("BtnQuantity: " + btnQuantity);
-        audioEntities = audioEntities.subList(start, end + 1);
-        System.out.println("Start = " + start + "  End = " + end);
+        audioEntities = audioEntities.subList(start, tempEnd + 1);
+        System.out.println("Start = " + start + "  End = " + tempEnd);
         System.out.println("KeyboardBuilder: " + audioEntities);
         List<List<InlineKeyboardButton>> rowButtonList = new ArrayList<>();
         if (btnQuantity <= 5) {

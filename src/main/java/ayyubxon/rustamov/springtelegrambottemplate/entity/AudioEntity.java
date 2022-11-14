@@ -3,7 +3,8 @@ package ayyubxon.rustamov.springtelegrambottemplate.entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.telegram.telegrambots.meta.api.objects.PhotoSize;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 
@@ -22,6 +23,7 @@ public class AudioEntity {
     private String fileUniqueId;
 
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Playlist playlist;
 
     private Integer duration;

@@ -14,7 +14,7 @@ import java.util.List;
 
 public interface TelegramService {
 
-    SendMessage start(Message message);
+    SendMessage start(Message message, boolean start);
 
     SendMessage home(Message message);
 
@@ -35,6 +35,8 @@ public interface TelegramService {
     SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities);
 
     SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName);
+
+    SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities);
 
     BotApiMethod audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities, int start, int end,
                             String name, boolean next);

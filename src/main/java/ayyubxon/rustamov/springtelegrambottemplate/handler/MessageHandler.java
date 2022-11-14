@@ -39,8 +39,8 @@ public class MessageHandler implements Handler<Message> {
         } else {
             User newUser = new User(from.getId(), from.getFirstName() + " " + from.getLastName(),
                     from.getUserName(), State.START);
+            sender.send(telegramService.start(message, true));
             user = userService.save(newUser).getData();
-            sender.send(telegramService.start(message));
         }
         System.out.println(user);
 
@@ -54,27 +54,32 @@ public class MessageHandler implements Handler<Message> {
             audioEntity = audioEntityService.save(audioEntity).getData();
             user.setTempAudioId(audioEntity.getId());
             user.setState(State.AUDIO_EXIST);
-            userService.save(user);
             sender.send(telegramService.selectPlaylist(message, playlistService.getAllByUser(user).getData()));
+            userService.save(user);
 
         } else if (message.hasText()) {
 
             if (message.getText().equals("/start") & user.getState() != State.START) {
-                sender.send(telegramService.start(message));
-                user.setState(State.START);
+                user.setState(State.MAIN_MENU);
+                sender.send(telegramService.start(message, false));
                 userService.save(user);
 
-            } else if (message.equals("/liked")) {
+            } else if (message.getText().equals("/liked")) {
+                user.setState(State.MAIN_MENU);
+                List<AudioEntity> audioEntities = audioEntityService.getAllLikedByUser(user).getData();
+                sender.send(telegramService.likedAudiosFirstPage(message, audioEntities));
+                userService.save(user);
 
-            } else if (message.equals("/del_playlist")) {
+            } else if (message.getText().equals("/del_playlist")) {
                 user.setState(State.DELETE_PLAYLIST);
-                userService.save(user);
                 sender.send(telegramService.deletePlaylist(message, playlists));
-
-            } else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu")) {
-                user.setTempAudioId(null);
                 userService.save(user);
+
+            } else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu") || message.getText().equals("/main_menu")) {
+                user.setTempAudioId(null);
+                user.setState(State.MAIN_MENU);
                 sender.send(telegramService.home(message));
+                userService.save(user);
 
             } else if (message.getText().equals("\uD83C\uDFB6 Yangi playlist")) {
                 user.setState(State.NAMING_PLAYLIST);
@@ -82,24 +87,31 @@ public class MessageHandler implements Handler<Message> {
                 userService.save(user);
 
             } else if (message.getText().equals("\uD83C\uDFB5 Playlistlar")) {
+                user.setState(State.MAIN_MENU);
                 sender.send(telegramService.allPlaylists(message, playlists));
+                userService.save(user);
 
             } else if (message.getText().equals("\uD83C\uDFB5 Barcha qo'shiqlar")) {
+                user.setState(State.MAIN_MENU);
                 List<AudioEntity> audioEntities = audioEntityService.getAllByUser(user).getData();
                 sender.send(telegramService.allAudiosFirstPage(message, audioEntities));
+                userService.save(user);
 
             } else if (user.getState() == State.AUDIO_EXIST & !nameChecker(playlists, message.getText())) {
+                user.setState(State.MAIN_MENU);
                 AudioEntity audioEntity = audioEntityService.getOne(user.getTempAudioId()).getData();
                 audioEntity.setPlaylist(playlistService.getByUserAndName(user, message.getText()).getData());
                 audioEntityService.save(audioEntity);
                 sender.send(telegramService.audioSaved(message));
                 user.setTempAudioId(null);
-                user.setState(State.MAIN_MENU);
                 userService.save(user);
 
             } else if (user.getState() == State.DELETE_PLAYLIST & !nameChecker(playlists, message.getText())) {
                 ServiceResponse<?> serviceResponse = playlistService.deleteByUserAndName(user, message.getText());
                 sender.send(telegramService.playlistDeleted(message, serviceResponse.isSuccess()));
+                user.setState(State.MAIN_MENU);
+                userService.save(user);
+
             } else if (!nameChecker(playlists, message.getText()) & user.getState() == State.MAIN_MENU) {
                 System.out.println("Playlist: " + message.getText());
                 List<AudioEntity> audioEntities = audioEntityService.getAllByUserAndPlaylist(user, playlistService.getByUserAndName(
@@ -126,7 +138,6 @@ public class MessageHandler implements Handler<Message> {
                 }
             }
         }
-
     }
 
     public boolean nameChecker(List<Playlist> playlists, String name) {

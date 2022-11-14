@@ -11,7 +11,6 @@ import ayyubxon.rustamov.springtelegrambottemplate.service.TelegramService;
 import ayyubxon.rustamov.springtelegrambottemplate.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
 import org.telegram.telegrambots.meta.api.objects.Message;
 
@@ -45,7 +44,7 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
             User newUser = new User(from.getId(), from.getFirstName() + " " + from.getLastName(),
                     from.getUserName(), State.START);
             user = userService.save(newUser).getData();
-            sender.send(telegramService.start(message));
+            sender.send(telegramService.start(message, true));
         }
 
         if (callbackData[0].matches("[0-9]+")) {
@@ -55,6 +54,8 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
             List<AudioEntity> audioEntities;
             if (callbackData[1].equals("ALLAUDIOS")) {
                 audioEntities = audioEntityService.getAllByUser(user).getData();
+            } else if (callbackData[1].equals("LIKED")) {
+                audioEntities = audioEntityService.getAllLikedByUser(user).getData();
             } else {
                 audioEntities = audioEntityService.getAllByUserAndPlaylist(user, playlistService.getByUserAndName(
                         user, callbackData[1]).getData()).getData();
@@ -62,9 +63,9 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
 
             sender.send(telegramService.audiosPage(callbackQuery, audioEntities, Integer.parseInt(callbackData[2]),
                     Integer.parseInt(callbackData[3]), callbackData[1], callbackData[0].equals("NEXT")));
-        }else if (callbackData[0].equals("DELETE")){
+        } else if (callbackData[0].equals("DELETE")) {
             sender.send(telegramService.deleteMessage(message));
-        }else if (callbackData[0].equals("LIKE")){
+        } else if (callbackData[0].equals("LIKE")) {
             AudioEntity audio = audioEntityService.getOne(Long.parseLong(callbackData[1])).getData();
             audio.setLiked(!audio.isLiked());
             AudioEntity save = audioEntityService.save(audio).getData();

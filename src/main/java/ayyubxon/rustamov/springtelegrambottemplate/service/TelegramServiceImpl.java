@@ -2,11 +2,9 @@ package ayyubxon.rustamov.springtelegrambottemplate.service;
 
 import ayyubxon.rustamov.springtelegrambottemplate.builder.KeyboardBuilder;
 import ayyubxon.rustamov.springtelegrambottemplate.builder.TextBuilder;
-import ayyubxon.rustamov.springtelegrambottemplate.checker.UsernameChecker;
 import ayyubxon.rustamov.springtelegrambottemplate.entity.AudioEntity;
 import ayyubxon.rustamov.springtelegrambottemplate.entity.Playlist;
 import lombok.RequiredArgsConstructor;
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery;
@@ -30,15 +28,13 @@ public class TelegramServiceImpl implements TelegramService {
     @Value("${bot.username}")
     private String username;
 
-    final UsernameChecker usernameChecker;
-
     @Override
-    public SendMessage start(Message message) {
+    public SendMessage start(Message message, boolean start) {
 
         return SendMessage.builder()
-                .text(TextBuilder.startMessage(message.getFrom()))
+                .text(start ? TextBuilder.startMessage(message.getFrom()) : TextBuilder.COMMANDS)
+                .parseMode(ParseMode.HTML)
                 .chatId(message.getChatId())
-                .parseMode(ParseMode.MARKDOWN)
                 .replyMarkup(KeyboardBuilder.homeKeyboard())
                 .build();
     }
@@ -106,7 +102,7 @@ public class TelegramServiceImpl implements TelegramService {
     public SendMessage allPlaylists(Message message, List<Playlist> playlists) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
-        sendMessage.setText((playlists == null || playlists.isEmpty())?
+        sendMessage.setText((playlists == null || playlists.isEmpty()) ?
                 TextBuilder.ALL_PLAYLISTS_EMPTY : TextBuilder.ALL_PLAYLISTS);
         sendMessage.setReplyMarkup(KeyboardBuilder.playlistHomeKeyboard(playlists));
         return sendMessage;
@@ -116,7 +112,7 @@ public class TelegramServiceImpl implements TelegramService {
     public SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
-        sendMessage.setParseMode(ParseMode.MARKDOWN);
+        sendMessage.setParseMode(ParseMode.HTML);
         if (audioEntities == null || audioEntities.isEmpty()) {
             sendMessage.setText(TextBuilder.ALL_AUDIOS_EMPTY);
             sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
@@ -131,7 +127,7 @@ public class TelegramServiceImpl implements TelegramService {
     public SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
-        sendMessage.setParseMode(ParseMode.MARKDOWN);
+        sendMessage.setParseMode(ParseMode.HTML);
         if (audioEntities == null || audioEntities.isEmpty()) {
             sendMessage.setText(TextBuilder.playlistEmpty(playlistName));
             sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
@@ -143,13 +139,28 @@ public class TelegramServiceImpl implements TelegramService {
     }
 
     @Override
+    public SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities) {
+        SendMessage sendMessage = new SendMessage();
+        sendMessage.setChatId(message.getChatId());
+        if (audioEntities == null || audioEntities.isEmpty()) {
+            sendMessage.setText(TextBuilder.LIKED_PLAYLIST_EMPTY);
+            sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
+        } else {
+            sendMessage.setParseMode(ParseMode.HTML);
+            sendMessage.setText(TextBuilder.allAudios(audioEntities, 0, 9));
+            sendMessage.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, "LIKED"));
+        }
+        return sendMessage;
+    }
+
+    @Override
     public BotApiMethod audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities,
                                    int start, int end, String name, boolean next) {
         start = TextBuilder.startChecker(audioEntities, start);
         if (start == -1) {
             AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
             answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-            answerCallbackQuery.setText((next? TextBuilder.ANSWER_LAST_PAGE : TextBuilder.ANSWER_FIRST_PAGE));
+            answerCallbackQuery.setText((next ? TextBuilder.ANSWER_LAST_PAGE : TextBuilder.ANSWER_FIRST_PAGE));
             answerCallbackQuery.setShowAlert(false);
             return answerCallbackQuery;
         } else {
@@ -157,6 +168,7 @@ public class TelegramServiceImpl implements TelegramService {
             EditMessageText editMessageText = new EditMessageText();
             editMessageText.setChatId(message.getChatId());
             editMessageText.setMessageId(message.getMessageId());
+            editMessageText.setParseMode(ParseMode.HTML);
             editMessageText.setText(TextBuilder.allAudios(audioEntities, start, end));
             editMessageText.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, start, end, name));
             return editMessageText;
@@ -184,7 +196,7 @@ public class TelegramServiceImpl implements TelegramService {
     @Override
     public AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked) {
         return AnswerCallbackQuery.builder()
-                .text((isLiked? TextBuilder.ANSWER_LIKED : TextBuilder.ANSWER_DISLIKED))
+                .text((isLiked ? TextBuilder.ANSWER_LIKED : TextBuilder.ANSWER_DISLIKED))
                 .showAlert(false)
                 .callbackQueryId(callbackQuery.getId())
                 .build();
@@ -203,7 +215,7 @@ public class TelegramServiceImpl implements TelegramService {
     public SendMessage playlistDeleted(Message message, boolean success) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text(success? TextBuilder.PLAYLIST_DELETED : TextBuilder.PLAYLIST_NOT_FOUND)
+                .text(success ? TextBuilder.PLAYLIST_DELETED : TextBuilder.PLAYLIST_NOT_FOUND)
                 .replyMarkup(KeyboardBuilder.homeKeyboard())
                 .build();
     }

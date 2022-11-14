@@ -18,7 +18,7 @@ public class Playlist {
     @Column(unique = true, nullable = false)
     private String name;
 
-    @ManyToOne(cascade = CascadeType.REMOVE)
+    @ManyToOne
     private User user;
 
     public Playlist(String name, User user) {
