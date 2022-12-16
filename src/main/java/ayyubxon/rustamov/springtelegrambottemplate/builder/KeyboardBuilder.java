@@ -2,6 +2,7 @@ package ayyubxon.rustamov.springtelegrambottemplate.builder;
 
 import ayyubxon.rustamov.springtelegrambottemplate.entity.AudioEntity;
 import ayyubxon.rustamov.springtelegrambottemplate.entity.Playlist;
+import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
@@ -13,45 +14,60 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+@Service
 public class KeyboardBuilder {
 
-    public static ReplyKeyboardMarkup playlistKeyboard(List<Playlist> playlists) {
+    public InlineKeyboardMarkup languageKeyboard() {
+        return new InlineKeyboardMarkup(Collections.singletonList(Arrays.asList(
+                InlineKeyboardButton.builder()
+                        .text("\uD83C\uDDFA\uD83C\uDDFF O'zbek")
+                        .callbackData("LANGUAGE#UZ")
+                        .build(),
+                InlineKeyboardButton.builder()
+                        .text("\uD83C\uDDEC\uD83C\uDDE7 English")
+                        .callbackData("LANGUAGE#EN")
+                        .build()
+        )));
+    }
+
+    public ReplyKeyboardMarkup playlistKeyboard(List<Playlist> playlists, boolean uz) {
         List<KeyboardRow> rows = new ArrayList<>();
         for (Playlist playlist : playlists)
             rows.add(new KeyboardRow(Collections.singletonList(new KeyboardButton(playlist.getName()))));
-        return new ReplyKeyboardMarkup(rows, true, true, true, "Playlist tanlang");
+        return new ReplyKeyboardMarkup(rows, true, true, true,
+                (uz ? "Playlist tanlang" : "Choose a playlist"));
     }
 
-    public static ReplyKeyboardMarkup homeKeyboard() {
+    public ReplyKeyboardMarkup homeKeyboard(boolean uz) {
         return new ReplyKeyboardMarkup(
                 Arrays.asList(
                         new KeyboardRow(Arrays.asList(
-                                new KeyboardButton("\uD83C\uDFB5 Playlistlar"),
-                                new KeyboardButton("\uD83C\uDFB5 Barcha qo'shiqlar")
+                                new KeyboardButton("\uD83C\uDFB5 " + (uz ? "Playlistlar" : "Playlists")),
+                                new KeyboardButton("\uD83C\uDFB5 " + (uz ? "Barcha qo'shiqlar" : "All songs"))
                         )),
                         new KeyboardRow(Collections.singletonList(
-                                new KeyboardButton("\uD83C\uDFB6 Yangi playlist")
+                                new KeyboardButton("\uD83C\uDFB6 " + (uz ? "Yangi playlist" : "New playlist"))
                         ))
-                ), true, true, true, "Tanlang"
+                ), true, true, true, (uz ? "Tanlang" : "Choose")
         );
     }
 
-    public static ReplyKeyboardMarkup playlistHomeKeyboard(List<Playlist> playlists) {
-        ReplyKeyboardMarkup keyboardMarkup = playlistKeyboard(playlists);
+    public ReplyKeyboardMarkup playlistHomeKeyboard(List<Playlist> playlists, boolean uz) {
+        ReplyKeyboardMarkup keyboardMarkup = playlistKeyboard(playlists, uz);
         keyboardMarkup.getKeyboard().add(new KeyboardRow(Collections.singletonList(
-                new KeyboardButton("\uD83C\uDFE0 Bosh menyu"))));
+                new KeyboardButton("\uD83C\uDFE0 " + (uz ? "Bosh menyu" : "Main menu")))));
         return keyboardMarkup;
     }
 
-    public static ReplyKeyboardMarkup playlistNewKeyboard(List<Playlist> playlists) {
-        ReplyKeyboardMarkup keyboardMarkup = playlistKeyboard(playlists);
+    public ReplyKeyboardMarkup playlistNewKeyboard(List<Playlist> playlists, boolean uz) {
+        ReplyKeyboardMarkup keyboardMarkup = playlistKeyboard(playlists, uz);
         keyboardMarkup.getKeyboard().add(new KeyboardRow(Collections.singletonList(
-                new KeyboardButton("\uD83C\uDFB6 Yangi playlist"))));
+                new KeyboardButton("\uD83C\uDFB6 " + (uz ? "Yangi playlist" : "New playlist")))));
         return keyboardMarkup;
     }
 
-    public static InlineKeyboardMarkup allAudiosKeyboard(List<AudioEntity> audioEntities, int start, int end,
-                                                         String playlistName) {
+    public InlineKeyboardMarkup allAudiosKeyboard(List<AudioEntity> audioEntities, int start, int end,
+                                                  String playlistName) {
         int tempEnd = TextBuilder.endChecker(audioEntities, end);
         int btnQuantity = tempEnd - start + 1;
         System.out.println("BtnQuantity: " + btnQuantity);
@@ -113,7 +129,7 @@ public class KeyboardBuilder {
         return new InlineKeyboardMarkup(rowButtonList);
     }
 
-    public static InlineKeyboardMarkup audioKeyboard(AudioEntity audioEntity) {
+    public InlineKeyboardMarkup audioKeyboard(AudioEntity audioEntity) {
         return new InlineKeyboardMarkup(Collections.singletonList(Arrays.asList(
                         InlineKeyboardButton.builder()
                                 .text("❤️/\uD83D\uDC94")

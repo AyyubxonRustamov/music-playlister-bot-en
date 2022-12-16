@@ -38,8 +38,8 @@ public class MessageHandler implements Handler<Message> {
             user = response.getData();
         } else {
             User newUser = new User(from.getId(), from.getFirstName() + " " + from.getLastName(),
-                    from.getUserName(), State.START);
-            sender.send(telegramService.start(message, true));
+                    from.getUserName());
+//            sender.send(telegramService.start(message, true));
             user = userService.save(newUser).getData();
         }
         System.out.println(user);
@@ -54,47 +54,55 @@ public class MessageHandler implements Handler<Message> {
             audioEntity = audioEntityService.save(audioEntity).getData();
             user.setTempAudioId(audioEntity.getId());
             user.setState(State.AUDIO_EXIST);
-            sender.send(telegramService.selectPlaylist(message, playlistService.getAllByUser(user).getData()));
+            sender.send(telegramService.selectPlaylist(message, playlistService.getAllByUser(user).getData(), user.isUz()));
             userService.save(user);
 
         } else if (message.hasText()) {
 
-            if (message.getText().equals("/start") & user.getState() != State.START) {
+            if (message.getText().equals("/start")) {
                 user.setState(State.MAIN_MENU);
-                sender.send(telegramService.start(message, false));
+                sender.send(telegramService.selectLanguage(message));
+                userService.save(user);
+            } else if (message.getText().equals("/commands")) {
+                user.setState(State.MAIN_MENU);
+                sender.send(telegramService.commands(message, false, user.isUz()));
                 userService.save(user);
 
             } else if (message.getText().equals("/liked")) {
                 user.setState(State.MAIN_MENU);
                 List<AudioEntity> audioEntities = audioEntityService.getAllLikedByUser(user).getData();
-                sender.send(telegramService.likedAudiosFirstPage(message, audioEntities));
+                sender.send(telegramService.likedAudiosFirstPage(message, audioEntities, user.isUz()));
                 userService.save(user);
 
             } else if (message.getText().equals("/del_playlist")) {
                 user.setState(State.DELETE_PLAYLIST);
-                sender.send(telegramService.deletePlaylist(message, playlists));
+                sender.send(telegramService.deletePlaylist(message, playlists, user.isUz()));
                 userService.save(user);
 
-            } else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu") || message.getText().equals("/main_menu")) {
+            } else if (message.getText().equals("\uD83C\uDFE0 Bosh menyu") || message.getText().equals("/main_menu") ||
+                    message.getText().equals("\uD83C\uDFE0 Main menu")) {
                 user.setTempAudioId(null);
                 user.setState(State.MAIN_MENU);
-                sender.send(telegramService.home(message));
+                sender.send(telegramService.home(message, user.isUz()));
                 userService.save(user);
 
-            } else if (message.getText().equals("\uD83C\uDFB6 Yangi playlist")) {
+            } else if (message.getText().equals("\uD83C\uDFB6 Yangi playlist") ||
+                    message.getText().equals("\uD83C\uDFB6 New playlist")) {
                 user.setState(State.NAMING_PLAYLIST);
-                sender.send(telegramService.namingPlaylist(message));
+                sender.send(telegramService.namingPlaylist(message, user.isUz()));
                 userService.save(user);
 
-            } else if (message.getText().equals("\uD83C\uDFB5 Playlistlar")) {
+            } else if (message.getText().equals("\uD83C\uDFB5 Playlistlar") ||
+                    message.getText().equals("\uD83C\uDFB5 Playlists")) {
                 user.setState(State.MAIN_MENU);
-                sender.send(telegramService.allPlaylists(message, playlists));
+                sender.send(telegramService.allPlaylists(message, playlists, user.isUz()));
                 userService.save(user);
 
-            } else if (message.getText().equals("\uD83C\uDFB5 Barcha qo'shiqlar")) {
+            } else if (message.getText().equals("\uD83C\uDFB5 Barcha qo'shiqlar") ||
+                    message.getText().equals("\uD83C\uDFB5 All songs")) {
                 user.setState(State.MAIN_MENU);
                 List<AudioEntity> audioEntities = audioEntityService.getAllByUser(user).getData();
-                sender.send(telegramService.allAudiosFirstPage(message, audioEntities));
+                sender.send(telegramService.allAudiosFirstPage(message, audioEntities, user.isUz()));
                 userService.save(user);
 
             } else if (user.getState() == State.AUDIO_EXIST & !nameChecker(playlists, message.getText())) {
@@ -102,13 +110,13 @@ public class MessageHandler implements Handler<Message> {
                 AudioEntity audioEntity = audioEntityService.getOne(user.getTempAudioId()).getData();
                 audioEntity.setPlaylist(playlistService.getByUserAndName(user, message.getText()).getData());
                 audioEntityService.save(audioEntity);
-                sender.send(telegramService.audioSaved(message));
+                sender.send(telegramService.audioSaved(message, user.isUz()));
                 user.setTempAudioId(null);
                 userService.save(user);
 
             } else if (user.getState() == State.DELETE_PLAYLIST & !nameChecker(playlists, message.getText())) {
                 ServiceResponse<?> serviceResponse = playlistService.deleteByUserAndName(user, message.getText());
-                sender.send(telegramService.playlistDeleted(message, serviceResponse.isSuccess()));
+                sender.send(telegramService.playlistDeleted(message, serviceResponse.isSuccess(), user.isUz()));
                 user.setState(State.MAIN_MENU);
                 userService.save(user);
 
@@ -117,24 +125,24 @@ public class MessageHandler implements Handler<Message> {
                 List<AudioEntity> audioEntities = audioEntityService.getAllByUserAndPlaylist(user, playlistService.getByUserAndName(
                         user, message.getText()).getData()).getData();
                 System.out.println(audioEntities);
-                sender.send(telegramService.playlistAudiosFirstPage(message, audioEntities, message.getText()));
+                sender.send(telegramService.playlistAudiosFirstPage(message, audioEntities, message.getText(), user.isUz()));
 
             } else if (user.getState() == State.NAMING_PLAYLIST) {
                 Playlist newPlaylist = new Playlist(message.getText(), user);
                 if (nameChecker(playlists, newPlaylist.getName())) {
                     playlistService.save(newPlaylist);
-                    sender.send(telegramService.playlistCreated(message, newPlaylist.getName()));
+                    sender.send(telegramService.playlistCreated(message, newPlaylist.getName(), user.isUz()));
                     if (user.getTempAudioId() != null) {
                         AudioEntity audioEntity = audioEntityService.getOne(user.getTempAudioId()).getData();
                         audioEntity.setPlaylist(newPlaylist);
                         audioEntityService.save(audioEntity);
-                        sender.send(telegramService.audioSaved(message));
+                        sender.send(telegramService.audioSaved(message, user.isUz()));
                         user.setTempAudioId(null);
                     }
                     user.setState(State.MAIN_MENU);
                     userService.save(user);
                 } else {
-                    sender.send(telegramService.playlistNameExist(message, newPlaylist.getName()));
+                    sender.send(telegramService.playlistNameExist(message, newPlaylist.getName(), user.isUz()));
                 }
             }
         }

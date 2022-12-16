@@ -28,139 +28,164 @@ public class TelegramServiceImpl implements TelegramService {
     @Value("${bot.username}")
     private String username;
 
-    @Override
-    public SendMessage start(Message message, boolean start) {
+    private final TextBuilder textBuilder;
+    private final KeyboardBuilder keyboardBuilder;
 
+    @Override
+    public SendMessage commands(CallbackQuery callbackQuery, boolean start, boolean uz) {
         return SendMessage.builder()
-                .text(start ? TextBuilder.startMessage(message.getFrom()) : TextBuilder.COMMANDS)
+                .text(start ? textBuilder.startMessage(callbackQuery.getFrom(), uz) :
+                        (uz ? textBuilder.getCommandsUz() : textBuilder.getCommandsEn()))
+                .parseMode(ParseMode.HTML)
+                .chatId(callbackQuery.getMessage().getChatId())
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
+                .build();
+    }
+
+    @Override
+    public SendMessage commands(Message message, boolean start, boolean uz) {
+        return SendMessage.builder()
+                .text(start ? textBuilder.startMessage(message.getFrom(), uz) :
+                        (uz ? textBuilder.getCommandsUz() : textBuilder.getCommandsEn()))
                 .parseMode(ParseMode.HTML)
                 .chatId(message.getChatId())
-                .replyMarkup(KeyboardBuilder.homeKeyboard())
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
                 .build();
     }
 
     @Override
-    public SendMessage home(Message message) {
+    public SendMessage selectLanguage(Message message) {
         return SendMessage.builder()
-                .text(TextBuilder.HOME)
+                .text(textBuilder.getSelectLanguage())
+                .replyMarkup(keyboardBuilder.languageKeyboard())
                 .chatId(message.getChatId())
-                .replyMarkup(KeyboardBuilder.homeKeyboard())
                 .build();
     }
 
     @Override
-    public SendMessage namingPlaylist(Message message) {
+    public SendMessage home(Message message, boolean uz) {
         return SendMessage.builder()
-                .text(TextBuilder.NAMING_PLAYLIST)
+                .text(uz ? textBuilder.getHomeUz() : textBuilder.getHomeEn())
+                .chatId(message.getChatId())
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
+                .build();
+    }
+
+    @Override
+    public SendMessage namingPlaylist(Message message, boolean uz) {
+        return SendMessage.builder()
+                .text(uz ? textBuilder.getNamingPlaylistUz() : textBuilder.getNamingPlaylistEn())
                 .chatId(message.getChatId())
                 .replyMarkup(new ReplyKeyboardRemove(true))
                 .build();
     }
 
     @Override
-    public SendMessage playlistNameExist(Message message, String name) {
+    public SendMessage playlistNameExist(Message message, String name, boolean uz) {
         return SendMessage.builder()
-                .text(TextBuilder.playlistNameExist(name))
+                .text(textBuilder.playlistNameExist(name, uz))
                 .chatId(message.getChatId())
                 .replyMarkup(new ReplyKeyboardRemove(true))
                 .build();
     }
 
     @Override
-    public SendMessage playlistCreated(Message message, String name) {
+    public SendMessage playlistCreated(Message message, String name, boolean uz) {
         return SendMessage.builder()
-                .text(TextBuilder.playlistCreated(name))
+                .text(textBuilder.playlistCreated(name, uz))
                 .chatId(message.getChatId())
-                .replyMarkup(KeyboardBuilder.homeKeyboard())
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
                 .build();
     }
 
     @Override
-    public SendMessage selectPlaylist(Message message, List<Playlist> playlists) {
+    public SendMessage selectPlaylist(Message message, List<Playlist> playlists, boolean uz) {
 
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
-        sendMessage.setText(TextBuilder.SELECT_PLAYLIST);
-        sendMessage.setReplyMarkup(KeyboardBuilder.playlistNewKeyboard(playlists));
+        sendMessage.setText(uz ? textBuilder.getSelectPlaylistUz() : textBuilder.getSelectPlaylistEn());
+        sendMessage.setReplyMarkup(keyboardBuilder.playlistNewKeyboard(playlists, uz));
         sendMessage.setReplyToMessageId(message.getMessageId());
         if (playlists == null || playlists.isEmpty())
-            sendMessage.setText(TextBuilder.SELECT_PLAYLIST_EMPTY);
+            sendMessage.setText(uz ? textBuilder.getSelectPlaylistEmptyUz() : textBuilder.getSelectPlaylistEmptyEn());
 
         return sendMessage;
     }
 
     @Override
-    public SendMessage audioSaved(Message message) {
+    public SendMessage audioSaved(Message message, boolean uz) {
         return SendMessage.builder()
-                .text(TextBuilder.AUDIO_SAVED)
+                .text(uz ? textBuilder.getAudioSavedUz() : textBuilder.getAudioSavedEn())
                 .chatId(message.getChatId())
-                .replyMarkup(KeyboardBuilder.homeKeyboard())
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
                 .build();
     }
 
     @Override
-    public SendMessage allPlaylists(Message message, List<Playlist> playlists) {
+    public SendMessage allPlaylists(Message message, List<Playlist> playlists, boolean uz) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         sendMessage.setText((playlists == null || playlists.isEmpty()) ?
-                TextBuilder.ALL_PLAYLISTS_EMPTY : TextBuilder.ALL_PLAYLISTS);
-        sendMessage.setReplyMarkup(KeyboardBuilder.playlistHomeKeyboard(playlists));
+                (uz ? textBuilder.getAllPlaylistsEmptyUz() : textBuilder.getAllPlaylistsEmptyEn()) :
+                (uz ? textBuilder.getAllPlaylistsUz() : textBuilder.getAllPlaylistsEn()));
+        sendMessage.setReplyMarkup(keyboardBuilder.playlistHomeKeyboard(playlists, uz));
         return sendMessage;
     }
 
     @Override
-    public SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities) {
+    public SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities, boolean uz) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         sendMessage.setParseMode(ParseMode.HTML);
         if (audioEntities == null || audioEntities.isEmpty()) {
-            sendMessage.setText(TextBuilder.ALL_AUDIOS_EMPTY);
-            sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
+            sendMessage.setText(uz ? textBuilder.getAllAudiosEmptyUz() : textBuilder.getAllAudiosEmptyEn());
+            sendMessage.setReplyMarkup(keyboardBuilder.homeKeyboard(uz));
         } else {
-            sendMessage.setText(TextBuilder.allAudios(audioEntities, 0, 9));
-            sendMessage.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, "ALLAUDIOS"));
+            sendMessage.setText(textBuilder.allAudios(audioEntities, 0, 9, uz));
+            sendMessage.setReplyMarkup(keyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, "ALLAUDIOS"));
         }
         return sendMessage;
     }
 
     @Override
-    public SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName) {
+    public SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName, boolean uz) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         sendMessage.setParseMode(ParseMode.HTML);
         if (audioEntities == null || audioEntities.isEmpty()) {
-            sendMessage.setText(TextBuilder.playlistEmpty(playlistName));
-            sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
+            sendMessage.setText(textBuilder.playlistEmpty(playlistName, uz));
+            sendMessage.setReplyMarkup(keyboardBuilder.homeKeyboard(uz));
         } else {
-            sendMessage.setText(TextBuilder.allAudios(audioEntities, 0, 9));
-            sendMessage.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, playlistName));
+            sendMessage.setText(textBuilder.allAudios(audioEntities, 0, 9, uz));
+            sendMessage.setReplyMarkup(keyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, playlistName));
         }
         return sendMessage;
     }
 
     @Override
-    public SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities) {
+    public SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities, boolean uz) {
         SendMessage sendMessage = new SendMessage();
         sendMessage.setChatId(message.getChatId());
         if (audioEntities == null || audioEntities.isEmpty()) {
-            sendMessage.setText(TextBuilder.LIKED_PLAYLIST_EMPTY);
-            sendMessage.setReplyMarkup(KeyboardBuilder.homeKeyboard());
+            sendMessage.setText(uz ? textBuilder.getLikedPlaylistEmptyUz() : textBuilder.getLikedPlaylistEmptyEn());
+            sendMessage.setReplyMarkup(keyboardBuilder.homeKeyboard(uz));
         } else {
             sendMessage.setParseMode(ParseMode.HTML);
-            sendMessage.setText(TextBuilder.allAudios(audioEntities, 0, 9));
-            sendMessage.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, "LIKED"));
+            sendMessage.setText(textBuilder.allAudios(audioEntities, 0, 9, uz));
+            sendMessage.setReplyMarkup(keyboardBuilder.allAudiosKeyboard(audioEntities, 0, 9, "LIKED"));
         }
         return sendMessage;
     }
 
     @Override
     public BotApiMethod audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities,
-                                   int start, int end, String name, boolean next) {
+                                   int start, int end, String name, boolean next, boolean uz) {
         start = TextBuilder.startChecker(audioEntities, start);
         if (start == -1) {
             AnswerCallbackQuery answerCallbackQuery = new AnswerCallbackQuery();
             answerCallbackQuery.setCallbackQueryId(callbackQuery.getId());
-            answerCallbackQuery.setText((next ? TextBuilder.ANSWER_LAST_PAGE : TextBuilder.ANSWER_FIRST_PAGE));
+            answerCallbackQuery.setText((next ? (uz ? textBuilder.getAnswerLastPageUz() : textBuilder.getAnswerLastPageEn()) :
+                    (uz ? textBuilder.getAnswerFirstPageUz() : textBuilder.getAnswerFirstPageEn())));
             answerCallbackQuery.setShowAlert(false);
             return answerCallbackQuery;
         } else {
@@ -169,8 +194,8 @@ public class TelegramServiceImpl implements TelegramService {
             editMessageText.setChatId(message.getChatId());
             editMessageText.setMessageId(message.getMessageId());
             editMessageText.setParseMode(ParseMode.HTML);
-            editMessageText.setText(TextBuilder.allAudios(audioEntities, start, end));
-            editMessageText.setReplyMarkup(KeyboardBuilder.allAudiosKeyboard(audioEntities, start, end, name));
+            editMessageText.setText(textBuilder.allAudios(audioEntities, start, end, uz));
+            editMessageText.setReplyMarkup(keyboardBuilder.allAudiosKeyboard(audioEntities, start, end, name));
             return editMessageText;
         }
     }
@@ -189,34 +214,36 @@ public class TelegramServiceImpl implements TelegramService {
         sendAudio.setAudio(new InputFile(audio.getFileId()));
         sendAudio.setChatId(message.getChatId());
         sendAudio.setCaption("\uD83D\uDD25 @" + username + " \uD83D\uDD25");
-        sendAudio.setReplyMarkup(KeyboardBuilder.audioKeyboard(audio));
+        sendAudio.setReplyMarkup(keyboardBuilder.audioKeyboard(audio));
         return sendAudio;
     }
 
     @Override
-    public AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked) {
+    public AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked, boolean uz) {
         return AnswerCallbackQuery.builder()
-                .text((isLiked ? TextBuilder.ANSWER_LIKED : TextBuilder.ANSWER_DISLIKED))
+                .text(isLiked ? (uz ? textBuilder.getAnswerLikedUz() : textBuilder.getAnswerLikedEn()) :
+                        (uz ? textBuilder.getAnswerDislikedUz() : textBuilder.getAnswerDislikedEn()))
                 .showAlert(false)
                 .callbackQueryId(callbackQuery.getId())
                 .build();
     }
 
     @Override
-    public SendMessage deletePlaylist(Message message, List<Playlist> playlists) {
+    public SendMessage deletePlaylist(Message message, List<Playlist> playlists, boolean uz) {
         return SendMessage.builder()
-                .text(TextBuilder.DELETE_PLAYLIST)
+                .text(uz ? textBuilder.getDeletePlaylistUz() : textBuilder.getDeletePlaylistEn())
                 .chatId(message.getChatId())
-                .replyMarkup(KeyboardBuilder.playlistHomeKeyboard(playlists))
+                .replyMarkup(keyboardBuilder.playlistHomeKeyboard(playlists, uz))
                 .build();
     }
 
     @Override
-    public SendMessage playlistDeleted(Message message, boolean success) {
+    public SendMessage playlistDeleted(Message message, boolean success, boolean uz) {
         return SendMessage.builder()
                 .chatId(message.getChatId())
-                .text(success ? TextBuilder.PLAYLIST_DELETED : TextBuilder.PLAYLIST_NOT_FOUND)
-                .replyMarkup(KeyboardBuilder.homeKeyboard())
+                .text(success ? (uz ? textBuilder.getPlaylistDeletedUz() : textBuilder.getPlaylistDeletedEn()) :
+                        (uz ? textBuilder.getPlaylistNotFoundUz() : textBuilder.getPlaylistNotFoundEn()))
+                .replyMarkup(keyboardBuilder.homeKeyboard(uz))
                 .build();
     }
 }

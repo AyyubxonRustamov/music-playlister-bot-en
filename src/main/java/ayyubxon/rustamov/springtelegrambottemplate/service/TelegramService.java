@@ -14,38 +14,42 @@ import java.util.List;
 
 public interface TelegramService {
 
-    SendMessage start(Message message, boolean start);
+    SendMessage selectLanguage(Message message);
 
-    SendMessage home(Message message);
+    SendMessage commands(CallbackQuery callbackQuery, boolean start, boolean uz);
 
-    SendMessage namingPlaylist(Message message);
+    SendMessage commands(Message message, boolean start, boolean uz);
 
-    SendMessage playlistNameExist(Message message, String name);
+    SendMessage home(Message message, boolean uz);
 
-    SendMessage playlistCreated(Message message, String name);
+    SendMessage namingPlaylist(Message message, boolean uz);
 
-    SendMessage selectPlaylist(Message message, List<Playlist> playlists);
+    SendMessage playlistNameExist(Message message, String name, boolean uz);
 
-    SendMessage audioSaved(Message message);
+    SendMessage playlistCreated(Message message, String name, boolean uz);
 
-    SendMessage allPlaylists(Message message, List<Playlist> playlists);
+    SendMessage selectPlaylist(Message message, List<Playlist> playlists, boolean uz);
+
+    SendMessage audioSaved(Message message, boolean uz);
+
+    SendMessage allPlaylists(Message message, List<Playlist> playlists, boolean uz);
 
     SendAudio sendAudio(Message message, AudioEntity audioEntity);
 
-    SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities);
+    SendMessage allAudiosFirstPage(Message message, List<AudioEntity> audioEntities, boolean uz);
 
-    SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName);
+    SendMessage playlistAudiosFirstPage(Message message, List<AudioEntity> audioEntities, String playlistName, boolean uz);
 
-    SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities);
+    SendMessage likedAudiosFirstPage(Message message, List<AudioEntity> audioEntities, boolean uz);
 
     BotApiMethod audiosPage(CallbackQuery callbackQuery, List<AudioEntity> audioEntities, int start, int end,
-                            String name, boolean next);
+                            String name, boolean next, boolean uz);
 
     DeleteMessage deleteMessage(Message message);
 
-    AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked);
+    AnswerCallbackQuery sendAnswerIsLiked(CallbackQuery callbackQuery, boolean isLiked, boolean uz);
 
-    SendMessage deletePlaylist(Message message, List<Playlist> playlists);
+    SendMessage deletePlaylist(Message message, List<Playlist> playlists, boolean uz);
 
-    SendMessage playlistDeleted(Message message, boolean success);
+    SendMessage playlistDeleted(Message message, boolean success, boolean uz);
 }

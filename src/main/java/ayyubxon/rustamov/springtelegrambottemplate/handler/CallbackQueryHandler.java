@@ -29,7 +29,7 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
     @Override
     public void choose(CallbackQuery callbackQuery) {
 
-        System.out.println("\nCallbackData: " + callbackQuery.getData());
+        System.out.println("\nCallbackQuery: " + callbackQuery);
         org.telegram.telegrambots.meta.api.objects.User from = callbackQuery.getFrom();
 
 //        CallbacData: BtnNum#AudioFileID, BtnName#start#end
@@ -42,12 +42,17 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
             user = response.getData();
         } else {
             User newUser = new User(from.getId(), from.getFirstName() + " " + from.getLastName(),
-                    from.getUserName(), State.START);
+                    from.getUserName());
             user = userService.save(newUser).getData();
-            sender.send(telegramService.start(message, true));
         }
 
-        if (callbackData[0].matches("[0-9]+")) {
+        if (callbackData[0].equals("LANGUAGE")) {
+            user.setUz(callbackData[1].equals("UZ"));
+            user.setState(State.START);
+            sender.send(telegramService.commands(callbackQuery, true, user.isUz()));
+            sender.send(telegramService.commands(callbackQuery, false, user.isUz()));
+            userService.save(user);
+        } else if (callbackData[0].matches("[0-9]+")) {
             sender.send(telegramService.sendAudio(message, audioEntityService.getOne(
                     Long.parseLong(callbackData[1])).getData()));
         } else if (callbackData[0].equals("NEXT") | callbackData[0].equals("PREVIOUS")) {
@@ -62,14 +67,14 @@ public class CallbackQueryHandler implements Handler<CallbackQuery> {
             }
 
             sender.send(telegramService.audiosPage(callbackQuery, audioEntities, Integer.parseInt(callbackData[2]),
-                    Integer.parseInt(callbackData[3]), callbackData[1], callbackData[0].equals("NEXT")));
+                    Integer.parseInt(callbackData[3]), callbackData[1], callbackData[0].equals("NEXT"), user.isUz()));
         } else if (callbackData[0].equals("DELETE")) {
             sender.send(telegramService.deleteMessage(message));
         } else if (callbackData[0].equals("LIKE")) {
             AudioEntity audio = audioEntityService.getOne(Long.parseLong(callbackData[1])).getData();
             audio.setLiked(!audio.isLiked());
             AudioEntity save = audioEntityService.save(audio).getData();
-            sender.send(telegramService.sendAnswerIsLiked(callbackQuery, save.isLiked()));
+            sender.send(telegramService.sendAnswerIsLiked(callbackQuery, save.isLiked(), user.isUz()));
         }
     }
 }

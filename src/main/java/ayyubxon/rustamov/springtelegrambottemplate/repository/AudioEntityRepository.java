@@ -35,8 +35,7 @@ public interface AudioEntityRepository extends JpaRepository<AudioEntity, Long> 
             IN (
                 SELECT id
                 FROM playlist p
-                WHERE p.user_chat_id = ?1
-                )
+                WHERE p.user_chat_id = ?1)
             AND ae.liked = TRUE""", nativeQuery = true)
     List<AudioEntity> findAllLikedByUser(Long chatId);
 }

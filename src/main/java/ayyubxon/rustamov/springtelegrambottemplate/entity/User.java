@@ -27,10 +27,11 @@ public class User {
 
     private Long tempAudioId = null;
 
-    public User(Long chatId, String name, String username, State state) {
+    private boolean uz;
+
+    public User(Long chatId, String name, String username) {
         this.chatId = chatId;
         this.name = name;
         this.username = username;
-        this.state = state;
     }
 }
