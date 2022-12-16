@@ -1,2 +1,1 @@
-# spring-telegram-bot-template
-Telegram bot architecture template in Spring Boot
+# music-playlister-bot-uz-en
