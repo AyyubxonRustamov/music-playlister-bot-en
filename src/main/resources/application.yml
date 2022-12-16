@@ -2,16 +2,17 @@ server:
   port: 8081
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    # You must use PostgreSql database
+    url: jdbc:postgresql://localhost:5432/${your-database-name}
     driver-class-name: org.postgresql.Driver
-    password: Ayyub0906
-    username: postgres
+    password: ${your-database-password}
+    username: ${your-database-username}
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: # update, create, create-drop, ...
     show-sql: false
   main:
     allow-circular-references: true
 bot:
-  token: 5407594116:AAHRCYcGuFK3lClH0cnzxGO-tGywP6uDYXQ
-  username: musicplaylister_bot
+  token: ${your-bot-token}
+  username: ${your-bot-username}
